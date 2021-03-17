@@ -66,8 +66,8 @@ class GridObject(BufferObject):
                 elements.append([n, n + 1])
         return positions, colors, elements
 
-    def init(self):
-        self.make_buffers()
+    def init(self, *args, **kwargs):
+        super().init(*args, **kwargs)
 
         # Create uv plane
         x_size = self.x_cells * self.cell_size

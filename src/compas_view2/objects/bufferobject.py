@@ -1,12 +1,12 @@
 from compas.utilities import flatten
 from ..buffers import make_index_buffer, make_vertex_buffer, update_vertex_buffer, update_index_buffer
+from ..buffers import make_vao_buffer, make_object_ubo, update_object_ubo
 from .object import Object
 import numpy as np
 
 
 class BufferObject(Object):
     """A shared object to handle GL buffer creation and drawings
-
     Attributes
     ----------
     show_points : bool
@@ -37,6 +37,7 @@ class BufferObject(Object):
         self.pointsize = pointsize
         self.opacity = opacity
         self.background = False
+        self._shader_version = None
         self._bounding_box = None
         self._bounding_box_center = None
 
@@ -50,12 +51,10 @@ class BufferObject(Object):
 
     def make_buffer_from_data(self, data):
         """Create buffers from point/line/face data.
-
         Parameters
         ----------
         data: tuple
             Contains positions, colors, elements for the buffer
-
         Returns
         -------
         buffer_dict
@@ -71,7 +70,6 @@ class BufferObject(Object):
 
     def update_buffer_from_data(self, data, buffer, update_positions=True, update_colors=True, update_elements=True):
         """Update existing buffers from point/line/face data.
-
         Parameters
         ----------
         data: tuple
@@ -95,6 +93,12 @@ class BufferObject(Object):
         buffer["n"] = len(positions)
 
     def make_buffers(self):
+        if self._shader_version == "330":
+            self.make_buffers_330()
+        else:
+            self.make_buffers_120()
+
+    def make_buffers_120(self):
         """Create all buffers from object's data"""
         if hasattr(self, '_points_data'):
             data = self._points_data()
@@ -107,6 +111,20 @@ class BufferObject(Object):
         if hasattr(self, '_backfaces_data'):
             self._backfaces_buffer = self.make_buffer_from_data(self._backfaces_data())
 
+    def make_buffers_330(self):
+        """Create all buffers from object's data"""
+        if hasattr(self, '_points_data'):
+            self._points_buffer = make_vao_buffer(self._points_data(), "points")
+        if hasattr(self, '_lines_data'):
+            self._lines_buffer = make_vao_buffer(self._lines_data(), "lines")
+        if hasattr(self, '_frontfaces_data'):
+            self._frontfaces_buffer = make_vao_buffer(self._frontfaces_data(), "triangles")
+        if hasattr(self, '_backfaces_data'):
+            self._backfaces_buffer = make_vao_buffer(self._backfaces_data(), "triangles")
+
+        self.ubo = make_object_ubo()
+        update_object_ubo(self.ubo, self.matrix, self.opacity, self.is_selected)
+
     def update_buffers(self):
         """Update all buffers from object's data"""
         if hasattr(self, '_points_data'):
@@ -118,8 +136,9 @@ class BufferObject(Object):
         if hasattr(self, '_backfaces_data'):
             self.update_buffer_from_data(self._backfaces_data(), self._backfaces_buffer)
 
-    def init(self):
+    def init(self, shader_version="120"):
         """Initialize the object"""
+        self._shader_version = shader_version
         self.make_buffers()
         self._update_matrix()
 
@@ -135,6 +154,12 @@ class BufferObject(Object):
         self._bounding_box_center = np.average(self.bounding_box, axis=0)
 
     def draw(self, shader, wireframe=False, is_lighted=False):
+        if self._shader_version == "330":
+            self.draw_330(shader, wireframe, is_lighted)
+        else:
+            self.draw_120(shader, wireframe, is_lighted)
+
+    def draw_120(self, shader, wireframe=False, is_lighted=False):
         """Draw the object from its buffers"""
         shader.enable_attribute('position')
         shader.enable_attribute('color')
@@ -171,7 +196,29 @@ class BufferObject(Object):
         shader.disable_attribute('position')
         shader.disable_attribute('color')
 
+    def draw_330(self, shader, wireframe=False, is_lighted=False):
+        """Draw the object from vao buffers"""
+        shader.bind_ubo("object", 1, self.ubo)
+        if self.background:
+            shader.enable_background()
+        if hasattr(self, "_frontfaces_buffer") and self.show_faces and not wireframe:
+            shader.draw_vao_buffer(self._frontfaces_buffer)
+        if hasattr(self, "_backfaces_buffer") and self.show_faces and not wireframe:
+            shader.draw_vao_buffer(self._backfaces_buffer)
+        if hasattr(self, "_lines_buffer") and (self.show_lines or wireframe):
+            shader.draw_vao_buffer(self._lines_buffer)
+        if hasattr(self, "_points_buffer") and self.show_points:
+            shader.set_pointsize(self.pointsize)
+            shader.draw_vao_buffer(self._points_buffer)
+        shader.disable_background()
+
     def draw_instance(self, shader, wireframe=False):
+        if self._shader_version == "330":
+            self.draw_instance_330(shader, wireframe)
+        else:
+            self.draw_instance_120(shader, wireframe)
+
+    def draw_instance_120(self, shader, wireframe=False):
         """Draw the object instance for picking"""
         shader.enable_attribute('position')
         shader.enable_attribute('color')
@@ -196,3 +243,6 @@ class BufferObject(Object):
         shader.uniform3f('instance_color', [0, 0, 0])
         shader.disable_attribute('color')
         shader.disable_attribute('position')
+
+    def draw_instance_330(self, shader, wireframe=False):
+        pass

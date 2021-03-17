@@ -115,7 +115,7 @@ class Camera:
         """
         self.distance -= steps * self.zoom_delta * self.distance
 
-    def projection(self, width, height):
+    def projection(self, width=None, height=None):
         """Compute the projection matrix corresponding to the current camera settings.
 
         The projection matrix transforms the scene from
@@ -133,6 +133,8 @@ class Camera:
         4x4 array
             The transformation matrix in column-major order.
         """
+        width = width or self.view.app.width
+        height = height or self.view.app.height
         aspect = width / height
         if self.view.current == self.view.PERSPECTIVE:
             P = perspective(self.fov, aspect, self.near, self.far)

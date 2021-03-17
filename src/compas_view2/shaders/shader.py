@@ -1,5 +1,4 @@
 import os
-
 from OpenGL import GL
 
 
@@ -7,6 +6,7 @@ class Shader:
     """The shader used by the OpenGL view."""
 
     def __init__(self, name='120/mesh'):
+        self.name = name
         self.program = make_shader_program(name)
         self.locations = {}
 
@@ -90,6 +90,25 @@ class Shader:
     def disable_attribute(self, name):
         GL.glDisableVertexAttribArray(self.locations[name])
         del self.locations[name]
+
+    def enable_background(self):
+        GL.glDisable(GL.GL_DEPTH_TEST)
+
+    def disable_background(self):
+        GL.glEnable(GL.GL_DEPTH_TEST)
+
+    def set_pointsize(self, pointsize):
+        GL.glPointSize(pointsize)
+
+    def bind_ubo(self, name, location, ubo):
+        ubi = GL.glGetUniformBlockIndex(self.program, name)
+        GL.glUniformBlockBinding(self.program, ubi, location)
+        GL.glBindBufferBase(GL.GL_UNIFORM_BUFFER, location, ubo)
+
+    def draw_vao_buffer(self, buffer):
+        GL.glBindVertexArray(buffer['vao'])
+        GL.glDrawElements(buffer["mode"], buffer["n"], GL.GL_UNSIGNED_INT,  None)
+        GL.glBindVertexArray(0)
 
     def draw_triangles(self, elements=None, n=0, background=False):
         if elements:

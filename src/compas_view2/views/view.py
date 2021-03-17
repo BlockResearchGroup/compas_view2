@@ -121,8 +121,8 @@ class View(QtWidgets.QOpenGLWidget):
         GL.glDepthFunc(GL.GL_LESS)
         GL.glEnable(GL.GL_BLEND)
         GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-        GL.glEnable(GL.GL_POINT_SMOOTH)
-        GL.glEnable(GL.GL_LINE_SMOOTH)
+        # GL.glEnable(GL.GL_POINT_SMOOTH)
+        # GL.glEnable(GL.GL_LINE_SMOOTH)
         self.init()
 
     def init(self):
