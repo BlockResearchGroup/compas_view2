@@ -180,9 +180,9 @@ class MeshObject(BufferObject):
                     positions.append(b)
                     positions.append(c)
                     if self.use_vertex_color:
-                        colors.append(vertex_color[a])
-                        colors.append(vertex_color[b])
-                        colors.append(vertex_color[c])
+                        colors.append(vertex_color[vertices[0]])
+                        colors.append(vertex_color[vertices[1]])
+                        colors.append(vertex_color[vertices[2]])
                     else:
                         colors.append(color)
                         colors.append(color)
@@ -254,9 +254,9 @@ class MeshObject(BufferObject):
                     positions.append(b)
                     positions.append(c)
                     if self.use_vertex_color:
-                        colors.append(vertex_color[a])
-                        colors.append(vertex_color[b])
-                        colors.append(vertex_color[c])
+                        colors.append(vertex_color[vertices[0]])
+                        colors.append(vertex_color[vertices[1]])
+                        colors.append(vertex_color[vertices[2]])
                     else:
                         colors.append(color)
                         colors.append(color)

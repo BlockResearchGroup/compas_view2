@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-
+* Fixed bug [#212](https://github.com/compas-dev/compas_view2/issues/212).
 ### Removed
 
 

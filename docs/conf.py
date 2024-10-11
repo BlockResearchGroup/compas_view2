@@ -137,6 +137,7 @@ html_theme_options = {
         "image_dark": "_static/compas_icon_white.png",  # relative to parent of conf.py
         "text": project,
     },
+    "announcement": "This is the achieve documentation for the COMPAS_View2 for compas<=1.17.9. The next generation of the viewer for compas>2 is available <a href='https://compas.dev/compas_viewer/latest/'>here</a>.",
 }
 
 html_context = {
